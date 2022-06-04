@@ -6,13 +6,6 @@ import csv
 
 
 URL = "https://www.zu.ac.ae/main/en/index.aspx"
-page = requests.get(URL)
-
-soup = BeautifulSoup(page.content, "html.parser")
-
-links = soup.find_all('a', href=True)
-# print(links)
-print("length - ", len(links))
 all_links = []
 
 
@@ -30,14 +23,34 @@ def link_constructor(partial_link):
     return link.strip()
 
 
-for link in links:
-    if len(link_constructor(link['href'])) > 0:
-        all_links.append(link_constructor(link['href']))
-        # print(link_constructor(link['href']))
+def find_inner_links(all_links_, partial_link):
+    try:
+        page = requests.get(partial_link)
+        soup = BeautifulSoup(page.content, "html.parser")
+        links = soup.find_all('a', href=True)
+        print(f'all link length before set functin: {len(all_links)}')
+        for link in links:
+            discovered_link = link_constructor(link['href'])
+            if len(discovered_link) > 0 and discovered_link not in all_links_:
+                all_links_.append(discovered_link)
+                print(discovered_link)
+                find_inner_links(all_links_, discovered_link)
+    except TimeoutError:
+        print(f'Link Removed, Check for Error : {partial_link}')
+        all_links_.remove(all_links_.index(partial_link))
+
+
+
+
+
+
+find_inner_links(all_links, URL)
+
+# print(link_constructor(link['href']))
 print(f'all link length before set functin: {len(all_links)}')
 all_links = set(all_links)
 print(f'all link length after set funcation : {len(all_links)}')
-print(all_links)
+print(list(all_links))
 # print(type(link['href']))
 # break
 # if 'href=' in link.contents:
