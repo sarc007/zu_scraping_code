@@ -31,7 +31,9 @@ def find_inner_links(all_links_, partial_link):
         print(f'all link length before set functin: {len(all_links)}')
         for link in links:
             discovered_link = link_constructor(link['href'])
-            if len(discovered_link) > 0 and discovered_link not in all_links_:
+            if len(discovered_link) > 0\
+                    and discovered_link not in all_links_ \
+                    and 'zu' in discovered_link:
                 all_links_.append(discovered_link)
                 print(discovered_link)
                 find_inner_links(all_links_, discovered_link)
@@ -52,6 +54,15 @@ print(f'all link length before set functin: {len(all_links)}')
 all_links = set(all_links)
 print(f'all link length after set funcation : {len(all_links)}')
 print(list(all_links))
+
+with open('urls.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+
+    # write the header
+    # writer.writerow(header)
+
+    # write multiple rows
+    writer.writerows(all_links)
 # print(type(link['href']))
 # break
 # if 'href=' in link.contents:
