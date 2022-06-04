@@ -35,13 +35,14 @@ def find_inner_links(all_links_, partial_link):
                 all_links_.append(discovered_link)
                 print(discovered_link)
                 find_inner_links(all_links_, discovered_link)
+
     except TimeoutError:
         print(f'Link Removed, Check for Error : {partial_link}')
         all_links_.remove(all_links_.index(partial_link))
 
 
-
-
+    except:
+        print(f' This link gave error : {partial_link}')
 
 
 find_inner_links(all_links, URL)
