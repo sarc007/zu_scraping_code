@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 from urllib.parse import urlparse
+
 # from gensim.parsing.preprocessing import remove_stopwords
 
 
@@ -27,25 +28,37 @@ def link_constructor(partial_link):
         pass
     else:
         if URL != 'https://www.zu.ac.ae/main/en/' + partial_link:
-            link = 'https://www.zu.ac.ae/main/en/' + partial_link
+            partial_link_ = partial_link
+            while '../' in partial_link_:
+                partial_link_ = partial_link_[3:]
+            link = 'https://www.zu.ac.ae/main/en/' + partial_link_
+
     return link.strip()
 
 
-def find_inner_links(all_links_, partial_link):
+def find_inner_links(part_data_, all_links_, partial_link):
     try:
         if uri_validator(partial_link):
             page = requests.get(partial_link)
             soup = BeautifulSoup(page.content, "html.parser")
             links = soup.find_all('a', href=True)
             print(f'all link length before set function: {len(all_links)}')
+
+            if len(part_data_) % 10 == 0 and len(part_data_) > 0:
+                with open('.\\data\\urls_partial.txt', 'a', encoding='UTF8', newline='') as f:
+                    f.writelines(part_data_)
+
+                part_data_ = []
+
             for link in links:
                 discovered_link = link_constructor(link['href'])
-                if len(discovered_link) > 0\
+                if len(discovered_link) > 0 \
                         and discovered_link not in all_links_ \
-                        and 'zu' in discovered_link:
-                    all_links_.append(discovered_link)
+                        and 'zu.ac.ae' in discovered_link:
+                    all_links_.append(discovered_link+'\n')
+                    part_data_.append(discovered_link+'\n')
                     print(discovered_link)
-                    find_inner_links(all_links_, discovered_link)
+                    find_inner_links(part_data_, all_links_, discovered_link)
     except TimeoutError:
         print(f'Link Removed, Check for Error : {partial_link}')
         all_links_.remove(all_links_.index(partial_link))
@@ -55,7 +68,8 @@ def find_inner_links(all_links_, partial_link):
         print(f' This link gave error : {partial_link}')
 
 
-find_inner_links(all_links, URL)
+part_data = []
+find_inner_links(part_data, all_links, URL)
 
 # print(link_constructor(link['href']))
 print(f'all link length before set function: {len(all_links)}')
@@ -63,14 +77,9 @@ all_links = set(all_links)
 print(f'all link length after set function : {len(all_links)}')
 print(list(all_links))
 
-with open('urls.csv', 'w', encoding='UTF8', newline='') as f:
-    writer = csv.writer(f)
+with open('.\\data\\urls.txt', 'w', encoding='UTF8', newline='') as f:
+    f.writelines(all_links)
 
-    # write the header
-    # writer.writerow(header)
-
-    # write multiple rows
-    writer.writerows(all_links)
 # print(type(link['href']))
 # break
 # if 'href=' in link.contents:
